@@ -7,13 +7,18 @@ from random import randint
 bot = telebot.TeleBot(TOKEN)
 # Создаём словарь, где ключ - название песни, значение - путь к песни
 audios = dict()
+
+
 # Получаем песни из папки
-path_to_files = os.getenv('USERPROFILE')+'\\Desktop\\'
-for file in os.listdir(path_to_files):
-    if file.endswith('.mp3'):
-        audios.update({file[:-4].replace('-', ' '): os.path.join(path_to_files, file)})
+def get_musics():
+    global audios
+    path_to_files = os.getenv('USERPROFILE') + '\\Desktop\\'
+    for file in os.listdir(path_to_files):
+        if file.endswith('.mp3'):
+            audios.update({file[:-4].replace('-', ' '): os.path.join(path_to_files, file)})
 
 
+get_musics()
 # Создаём inline кнопки
 keyboard = telebot.types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
 button1 = telebot.types.KeyboardButton('Начать игру.')
@@ -24,7 +29,7 @@ keyboard.add(button1)
 def check_answer(message, audio):
     global audios
     correct_answer = audio[0]
-    if message.text.lower() == correct_answer.lower():
+    if correct_answer.lower() in message.text.lower():
         bot.send_message(message.chat.id, 'Правильно, молодец!')
         # Удаляем песню из словаря при правильном ответе
         audios.pop(audio[0], audio[1])
@@ -41,10 +46,14 @@ def start(message):
 # Создаём функцию игры
 @bot.message_handler(content_types=['text'])
 def play(message):
+    global audio
     if message.text == 'Начать игру.':
         # Путь к аудио трекам
         audios_path = list(audios.items())
-        audio = audios_path[randint(0, len(audios_path))-1]
+        try:
+            audio = audios_path[randint(0, len(audios_path)) - 1]
+        except IndexError:
+            get_musics()
         # Отправляем аудио
         with open(audio[1], 'rb') as audio_path:
             msg = bot.send_audio(message.chat.id, audio_path)
