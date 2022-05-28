@@ -22,9 +22,14 @@ keyboard.add(button1)
 
 # Проверяем ответ пользователя
 def check_answer(message, audio):
+    global audios
     correct_answer = audio[0]
     if message.text.lower() == correct_answer.lower():
         bot.send_message(message.chat.id, 'Правильно, молодец!')
+        # Удаляем песню из словаря при правильном ответе
+        audios.pop(audio[0], audio[1])
+    else:
+        bot.send_message(message.chat.id, 'Неправильно!')
 
 
 # Создаём функцию в ответ на команду start
